@@ -97,6 +97,9 @@ fn main() -> Result<()> {
             log::info!("Using model: {:?}", model);
             log::info!("Output file: {:?}", out);
 
+            let documents = indexer::load_documents(&corpus)?;
+            println!("Loaded {} documents", documents.len());
+
             // TODO: Implement indexing logic
             // This will involve:
             // 1. Loading documents from corpus directory
