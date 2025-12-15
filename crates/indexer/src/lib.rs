@@ -13,14 +13,12 @@ pub struct Document {
     // What else ??
 }
 
-pub struct Index {
+pub struct InvertedIndex {
+    pub term_to_docs: HashMap<String, Vec<(usize, usize)>>,
     pub documents: Vec<Document>,
-    pub token2id: HashMap<String, usize>,
-    pub id2token: HashMap<usize, String>,
-    pub token2doc: HashMap<usize, Vec<usize>>,
-    pub doc2token: HashMap<usize, Vec<usize>>,
-    // How do you store "word -> list of documents"
-    // Hint: HashMap<String, Vec<???>>
+    pub doc_lengths: Vec<usize>,
+    pub avg_doc_length: f64,
+    pub total_docs: usize,
 }
 
 pub fn load_documents(_corpus_dir: &Path) -> Result<Vec<Document>> {
@@ -80,4 +78,38 @@ pub fn token_count(tokens: &[String]) -> HashMap<String, usize> {
     }
 
     counts
+}
+
+impl InvertedIndex {
+    pub fn new(documents: Vec<Document>) -> Self {
+        let mut term_to_docs = HashMap::new();
+        let mut doc_lengths = Vec::new();
+        let mut avg_doc_length = 0.0;
+        let total_docs = documents.len();
+
+        for doc in &documents {
+            
+            let tokens = tokenize(&doc.text);
+            let term_frequencies = token_count(&tokens);
+
+            doc_lengths.push(tokens.len());
+            avg_doc_length += tokens.len() as f64;
+
+            for (term, frequency) in term_frequencies {
+                term_to_docs
+                    .entry(term)
+                    .or_insert_with(Vec::new)
+                    .push((doc.id, frequency));
+            }
+        }
+        avg_doc_length /= total_docs as f64;
+
+        Self {
+            term_to_docs,
+            documents,
+            doc_lengths,
+            avg_doc_length,
+            total_docs,
+        }
+    }
 }

@@ -99,10 +99,8 @@ fn main() -> Result<()> {
 
             let documents = indexer::load_documents(&corpus)?;
             println!("Loaded {} documents", documents.len());
-            let test_doc = documents.get(0);
-            let test_doc_text = &test_doc.unwrap().text;
-            let test_tokens = indexer::tokenize(&test_doc_text);
-            println!("{:?}", test_tokens);
+            let test_index = indexer::InvertedIndex::new(documents);
+            println!("Indexed {} docs, avg doc lengths {:.2}", test_index.total_docs, test_index.avg_doc_length);
 
             // TODO: Implement indexing logic
             // This will involve:
