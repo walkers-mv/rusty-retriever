@@ -3,8 +3,10 @@ use regex::Regex;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
+use serde::{Serialize, Deserialize};
+use bincode::{serialize, deserialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Document {
     pub id: usize,
     pub title: String,
@@ -13,6 +15,7 @@ pub struct Document {
     // What else ??
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct InvertedIndex {
     pub term_to_docs: HashMap<String, Vec<(usize, usize)>>,
     pub documents: Vec<Document>,
@@ -112,4 +115,19 @@ impl InvertedIndex {
             total_docs,
         }
     }
+
+    pub fn save_to_file(&self, path: &Path) -> Result<()> {
+        let encoded = serialize(self)?;
+        std::fs::write(path, encoded)?;
+        log::info!("Saved index to {:?}", path);
+        Ok(())
+    }
+
+    pub fn load_from_file(path: &Path) -> Result<Self> {
+        let data = std::fs::read(path)?;
+        let index = deserialize(&data)?;
+        log::info!("Loaded index from {:?}", path);
+        Ok(index)
+    }
+
 }

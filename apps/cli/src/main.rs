@@ -100,7 +100,10 @@ fn main() -> Result<()> {
             let documents = indexer::load_documents(&corpus)?;
             println!("Loaded {} documents", documents.len());
             let test_index = indexer::InvertedIndex::new(documents);
-            println!("Indexed {} docs, avg doc lengths {:.2}", test_index.total_docs, test_index.avg_doc_length);
+            println!("Indexed {} docs, avg doc length {:.2}", test_index.total_docs, test_index.avg_doc_length);
+            let _ = test_index.save_to_file(&out);
+            
+
 
             // TODO: Implement indexing logic
             // This will involve:
