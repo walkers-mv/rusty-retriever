@@ -99,6 +99,10 @@ fn main() -> Result<()> {
 
             let documents = indexer::load_documents(&corpus)?;
             println!("Loaded {} documents", documents.len());
+            let test_doc = documents.get(0);
+            let test_doc_text = &test_doc.unwrap().text;
+            let test_tokens = indexer::tokenize(&test_doc_text);
+            println!("{:?}", test_tokens);
 
             // TODO: Implement indexing logic
             // This will involve:

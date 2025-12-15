@@ -1,4 +1,5 @@
 use anyhow::Result;
+use regex::Regex;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
@@ -54,4 +55,29 @@ pub fn load_documents(_corpus_dir: &Path) -> Result<Vec<Document>> {
     log::info!("Finished processing {} documents", documents.len());
 
     Ok(documents)
+}
+
+pub fn tokenize(text: &str) -> Vec<String> {
+    let re = Regex::new(r"\b\w+\b").unwrap();
+
+    let mut tokens = Vec::new();
+
+    for mat in re.find_iter(text) {
+        let word = mat.as_str().to_lowercase();
+
+        tokens.push(word)
+    }
+
+    tokens
+}
+
+pub fn token_count(tokens: &[String]) -> HashMap<String, usize> {
+    let mut counts = HashMap::new();
+
+    for token in tokens {
+        let count = counts.entry(token.clone()).or_insert(0);
+        *count += 1;
+    }
+
+    counts
 }
