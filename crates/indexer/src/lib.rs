@@ -1,10 +1,10 @@
 use anyhow::Result;
+use bincode::{deserialize, serialize};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
-use serde::{Serialize, Deserialize};
-use bincode::{serialize, deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Document {
@@ -91,7 +91,6 @@ impl InvertedIndex {
         let total_docs = documents.len();
 
         for doc in &documents {
-            
             let tokens = tokenize(&doc.text);
             let term_frequencies = token_count(&tokens);
 
@@ -129,5 +128,4 @@ impl InvertedIndex {
         log::info!("Loaded index from {:?}", path);
         Ok(index)
     }
-
 }

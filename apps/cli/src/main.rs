@@ -100,10 +100,11 @@ fn main() -> Result<()> {
             let documents = indexer::load_documents(&corpus)?;
             println!("Loaded {} documents", documents.len());
             let test_index = indexer::InvertedIndex::new(documents);
-            println!("Indexed {} docs, avg doc length {:.2}", test_index.total_docs, test_index.avg_doc_length);
+            println!(
+                "Indexed {} docs, avg doc length {:.2}",
+                test_index.total_docs, test_index.avg_doc_length
+            );
             let _ = test_index.save_to_file(&out);
-            
-
 
             // TODO: Implement indexing logic
             // This will involve:
@@ -133,21 +134,47 @@ fn main() -> Result<()> {
             log::info!("Query: {}", query);
             log::info!("Top-k: {}", topk);
 
-            // TODO: Implement query logic
-            // This will involve:
-            // 1. Loading serialized index
-            // 2. Tokenizing query
-            // 3. Computing scores for all documents
-            // 4. Ranking and returning top-k results
-            // 5. Formatting output (plain text or JSON)
+            // Load the index
+            let loaded_index = indexer::InvertedIndex::load_from_file(&index)?;
+
+            // Tokenize the query
+            let query_terms = indexer::tokenize(&query);
+
+            // Create BM25 scorer with standard parameters
+            let scorer = retrieval::BM25Scorer { k1: 1.2, b: 0.75 };
+
+            // Score documents and get results
+            let mut results = scorer.score_query(&query_terms, &loaded_index);
+
+            // Limit to top-k
+            results.truncate(topk);
 
             if json {
-                println!("{{\"query\": \"{}\", \"results\": []}}", query);
+                println!("{{\"query\": \"{}\", \"results\": [", query);
+                for (i, result) in results.iter().enumerate() {
+                    let doc = &loaded_index.documents[result.doc_id];
+                    print!("{{\"doc_id\": {}, \"title\": \"{}\", \"score\": {:.4}}}",
+                           result.doc_id, doc.title, result.score);
+                    if i < results.len() - 1 {
+                        print!(",");
+                    }
+                    println!();
+                }
+                println!("]}}");
             } else {
                 println!("Query: {}", query);
                 println!("Top {} results:", topk);
-                if show_snippet {
-                    println!("(Including snippets)");
+                for (rank, result) in results.iter().enumerate() {
+                    let doc = &loaded_index.documents[result.doc_id];
+                    println!("{}. {} (score: {:.4})", rank + 1, doc.title, result.score);
+                    if show_snippet {
+                        let snippet = if doc.text.len() > 100 {
+                            format!("{}...", &doc.text[..100])
+                        } else {
+                            doc.text.clone()
+                        };
+                        println!("   {}", snippet);
+                    }
                 }
             }
         }
